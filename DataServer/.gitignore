@@ -1,0 +1,76 @@
+# Бинарные файлы
+bin/
+obj/
+
+# Конфигурации Visual Studio/VS Code
+.vscode/
+.vs/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# Конфигурации сборки
+*.Build.cs
+*.csproj.user
+*.sln.metaproj
+
+# Логи и временные файлы
+*.log
+*.tlog
+*.log1
+*.log2
+*.cache
+*.temp
+
+# Пакеты и зависимости
+packages/
+*.nupkg
+*.snupkg
+project.lock.json
+project.fragment.lock.json
+
+# Конфигурационные файлы
+appsettings.json
+appsettings.Development.json
+
+# Секреты и ключи
+*.key
+*.pfx
+
+# Сборочные артефакты
+*.dll
+*.exe
+*.pdb
+*.mdb
+*.ilk
+*.idb
+
+# Системные файлы
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Резервные и временные файлы
+*.bak
+*.swp
+*.tmp
+*.old
+*.orig
+
+# IDE JetBrains Rider
+.idea/
+*.sln.iml
+
+# Тесты (если есть)
+TestResults/
+
+# dotnet-restore артефакты
+.nuget/
+*.nuget.cache
+
+# Git конфликты
+*_BACKUP.*
+*_BASE.*
+*_LOCAL.*
+*_REMOTE.*
