@@ -26,13 +26,31 @@ public class TcpServer
         {
             try
             {
-                var clientSocket = await _mainSocket.AcceptAsync(_mainSocket, _mainCts.Token);
-
+                var clientSocket = await _mainSocket.AcceptAsync(_mainCts.Token);
+                if(clientSocket.RemoteEndPoint is IPEndPoint clientEndPoint)
+                {
+                    Console.WriteLine($"Connect: {clientEndPoint}");
+                }
+                try
+                {
+                    clientSocket.Shutdown(SocketShutdown.Both);
+                    clientSocket.Close();
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex.Message);
+                }
             }
             catch (OperationCanceledException)
             {
 
             }
         }
+        _mainCts.Dispose();
+    }
+
+    public void Stop()
+    {
+        _mainCts.Cancel();        
     }
 }
