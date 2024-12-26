@@ -1,7 +1,8 @@
 namespace DataServer.Core.Interfaces;
 
-public interface IDataBuffer
+public interface IBuffer<T>
 {
-    Task PutDataAsync(byte[] data);
-    Task<byte[]> GetDataAsync();
+    bool IsEmpty { get; }
+    Task PutDataAsync(T data);
+    Task<T> GetDataAsync();
 }
