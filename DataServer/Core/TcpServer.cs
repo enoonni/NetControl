@@ -9,6 +9,7 @@ public class TcpServer
     private readonly Socket _mainSocket;
     private readonly IPEndPoint _ipEndPoint;
     private readonly CancellationTokenSource _mainCts;
+    private readonly ClientHanlder _clientHanlder;
 
     public TcpServer(int port)
     {
@@ -17,36 +18,41 @@ public class TcpServer
         _mainSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
         _ipEndPoint = new IPEndPoint(IPAddress.Any, _port);
         _mainSocket.Bind(_ipEndPoint);
+        _clientHanlder = new();
     }
 
-    public async Task StartAsync()
+    public void Start()
     {
-        _mainSocket.Listen(10);
-        while(!_mainCts.Token.IsCancellationRequested)
+        Task.Run(async () =>
         {
-            try
+            _mainSocket.Listen(10);
+            while(!_mainCts.Token.IsCancellationRequested)
             {
-                var clientSocket = await _mainSocket.AcceptAsync(_mainCts.Token);
-                if(clientSocket.RemoteEndPoint is IPEndPoint clientEndPoint)
-                {
-                    Console.WriteLine($"Connect: {clientEndPoint}");
-                }
                 try
                 {
-                    clientSocket.Shutdown(SocketShutdown.Both);
-                    clientSocket.Close();
+                    var clientSocket = await _mainSocket.AcceptAsync(_mainCts.Token);
+                    var client = new TcpClient(clientSocket, _clientHanlder.Buffer);
+                    if(clientSocket.RemoteEndPoint is IPEndPoint clientEndPoint)
+                    {
+                        Console.WriteLine($"Connect: {clientEndPoint}");
+                    }
+                    try
+                    {
+                        clientSocket.Shutdown(SocketShutdown.Both);
+                        clientSocket.Close();
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine(ex.Message);
+                    }
                 }
-                catch (Exception ex)
+                catch (OperationCanceledException)
                 {
-                    Console.WriteLine(ex.Message);
+                    Console.WriteLine("Token is canceled");
                 }
             }
-            catch (OperationCanceledException)
-            {
-
-            }
-        }
-        _mainCts.Dispose();
+            _mainCts.Dispose();
+        });
     }
 
     public void Stop()

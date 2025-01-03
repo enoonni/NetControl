@@ -1,7 +1,7 @@
 ﻿using DataServer.Core;
 
 TcpServer server = new TcpServer(1337);
-var serverTask = server.StartAsync();
+server.Start();
 
 while (true)
 {
