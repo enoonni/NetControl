@@ -10,6 +10,7 @@ public class TcpServer
     private readonly IPEndPoint _ipEndPoint;
     private readonly CancellationTokenSource _mainCts;
     private readonly ClientHanlder _clientHanlder;
+    private readonly ClientManager _clientManager;
 
     public TcpServer(int port)
     {
@@ -19,31 +20,36 @@ public class TcpServer
         _ipEndPoint = new IPEndPoint(IPAddress.Any, _port);
         _mainSocket.Bind(_ipEndPoint);
         _clientHanlder = new();
+        _clientManager = new();
     }
 
     public void Start()
     {
         Task.Run(async () =>
         {
+            _clientManager.Start();
+            _clientHanlder.Start();
+
             _mainSocket.Listen(10);
+
             while(!_mainCts.Token.IsCancellationRequested)
             {
                 try
                 {
                     var clientSocket = await _mainSocket.AcceptAsync(_mainCts.Token);
-                    var client = new TcpClient(clientSocket, _clientHanlder.Buffer);
                     if(clientSocket.RemoteEndPoint is IPEndPoint clientEndPoint)
                     {
                         Console.WriteLine($"Connect: {clientEndPoint}");
+
+                        var client = new TcpClient(clientSocket, _clientHanlder.Buffer, clientEndPoint.ToString());
+                        client.Open();
+
+                        await _clientManager.AddClientAsync(client);
                     }
-                    try
+                    else
                     {
                         clientSocket.Shutdown(SocketShutdown.Both);
                         clientSocket.Close();
-                    }
-                    catch (Exception ex)
-                    {
-                        Console.WriteLine(ex.Message);
                     }
                 }
                 catch (OperationCanceledException)
@@ -52,11 +58,15 @@ public class TcpServer
                 }
             }
             _mainCts.Dispose();
+
+            await Task.Delay(1000);
         });
     }
 
     public void Stop()
     {
         _mainCts.Cancel();        
+        _clientManager.Stop();
+        _clientHanlder.Stop();
     }
 }

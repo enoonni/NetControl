@@ -9,12 +9,14 @@ public class TcpClient : IClient
     private readonly CancellationTokenSource _cts;
     private readonly IBuffer<byte[]> _sendBuffer = new DataBuffer();
     private readonly IBuffer<ClientHandlerBufferData> _clientHandlerBuffer;
+    private readonly string _address;
 
-    public TcpClient(Socket socket, IBuffer<ClientHandlerBufferData> clientHandlerBuffer)
+    public TcpClient(Socket socket, IBuffer<ClientHandlerBufferData> clientHandlerBuffer, string address)
     {
         _socket = socket;
         _cts = new();
         _clientHandlerBuffer = clientHandlerBuffer;
+        _address = address;
     }
 
     public bool IsConnected => _socket.Connected;
@@ -46,6 +48,11 @@ public class TcpClient : IClient
                 try
                 {
                     var size = await _socket.ReceiveAsync(buffer, _cts.Token);
+                    if(size == 0)
+                    {
+                        _cts.Cancel();
+                        throw new Exception("Client connection lost");
+                    }
                     var data = new byte[size];
                     Array.Copy(buffer, 0, data, 0, size);
                     await _clientHandlerBuffer.PutDataAsync(new ClientHandlerBufferData(this, data));
@@ -53,6 +60,17 @@ public class TcpClient : IClient
                 catch (OperationCanceledException)
                 {
                     
+                }
+                catch (SocketException ex)
+                {
+                    Console.WriteLine(ex.Message);
+                    if(_socket.Connected)
+                    {
+                        _socket.Shutdown(SocketShutdown.Both);
+                        _socket.Close();
+                    }
+                    _socket.Dispose();
+                    _cts.Cancel();
                 }
                 catch (Exception ex)
                 {

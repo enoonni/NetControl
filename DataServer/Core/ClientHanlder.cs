@@ -1,3 +1,4 @@
+using System.Text;
 using DataServer.Core.Interfaces;
 
 namespace DataServer.Core;
@@ -15,31 +16,48 @@ public class ClientHanlder
         _cts = new();
     }
 
-    public async Task Start()
+    public void Start()
     {
-        while(!_cts.Token.IsCancellationRequested)
+        Task.Run(async () =>
         {
-            if(!_buffer.IsEmpty)
+            while(!_cts.Token.IsCancellationRequested)
             {
-                try
+                if(!_buffer.IsEmpty)
                 {
-                    await HandlingData(await _buffer.GetDataAsync());
+                    try
+                    {
+                        await HandlingData(await _buffer.GetDataAsync());
+                    }
+                    catch(Exception ex)
+                    {
+                        Console.WriteLine(ex.Message);
+                    }
                 }
-                catch(Exception ex)
+                else
                 {
-                    Console.WriteLine(ex.Message);
+                    await Task.Delay(100);
                 }
             }
-            else
-            {
-                await Task.Delay(100);
-            }
-        }
-        _cts.Dispose();
+            _cts.Dispose();
+        });
     }
 
     public async Task HandlingData(ClientHandlerBufferData data)
     {
-        await data.Client.SendDataAsync(data.Data);
+        // await data.Client.SendDataAsync(data.Data);
+        try
+        {
+            Console.WriteLine(BitConverter.ToString(data.Data));
+            await data.Client.SendDataAsync(Encoding.UTF8.GetBytes("Accept"));
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.Message);
+        }
+    }
+
+    public void Stop()
+    {
+        _cts.Cancel();
     }
 }

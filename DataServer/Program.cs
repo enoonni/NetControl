@@ -5,16 +5,24 @@ server.Start();
 
 while (true)
 {
-    var input = Console.ReadLine();
-
-    switch (input)
+    try    
     {
-        case "0":
-            server.Stop();
-            Environment.Exit(0);
-            break;
+        var input = Console.ReadLine();
 
-        default:
-            break;
+        switch (input)
+        {
+            case "0":
+                server.Stop();
+                Environment.Exit(0);
+                break;
+
+            default:
+                break;
+        }        
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine(ex.Message);
+        await Task.Delay(1000);
     }
 }

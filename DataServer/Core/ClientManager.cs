@@ -13,20 +13,28 @@ public class ClientManager
         _clients = new List<TcpClient>();
     }
 
-    public void StartManageClients()
+    public void Start()
     {
         Task.Run(async () =>
         {
             while(!_cts.Token.IsCancellationRequested)
             {
-                foreach(var client in _clients)
+                if(_clients.Count > 0)
                 {
-                    if(!client.IsConnected)
+                    foreach(var client in _clients)
                     {
-                        _clients.RemoveAt(_clients.IndexOf(client));
+                        if(!client.IsConnected)
+                        {
+                            _clients.RemoveAt(_clients.IndexOf(client));
+                        }
                     }
+                    await Task.Delay(1000);
                 }
-                await Task.Delay(1000);
+                else
+                {
+                    await Task.Delay(1000);
+                }
+                
             }
             
             await Task.Delay(100);
@@ -35,10 +43,15 @@ public class ClientManager
         });
     }
 
-    public async Task AddClient(TcpClient client)
+    public async Task AddClientAsync(TcpClient client)
     {
         await _semaphore.WaitAsync();
         _clients.Add(client);
         _semaphore.Release();
+    }
+
+    public void Stop()
+    {
+        _cts.Cancel();
     }
 }

@@ -31,14 +31,16 @@ public class DataBuffer : IBuffer<byte[]>
     public async Task<byte[]> GetDataAsync()
     {
         var data = new byte[0];
+
         await _semaphore.WaitAsync();
+        
         if(_buffer.Count > 0)
         {
             data = _buffer[0];
             _buffer.RemoveAt(0);
         }
-        _semaphore.Release();
 
+        _semaphore.Release();
         return data;
     }
 }
