@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Управление Console App</title>
+</head>
+<body>
+    <button onclick="sendRequest('/start')">Запустить</button>
+    <button onclick="sendRequest('/stop')">Остановить</button>
+
+    <script>
+        function sendRequest(endpoint) {
+            fetch(endpoint, { method: "POST" })
+                .then(response => {
+                    if (response.ok) {
+                        alert(`${endpoint} выполнено успешно!`);
+                    } else {
+                        alert(`Ошибка при выполнении ${endpoint}.`);
+                    }
+                })
+                .catch(() => {
+                    alert(`Не удалось подключиться к серверу.`);
+                });
+        }
+    </script>
+</body>
+</html>
