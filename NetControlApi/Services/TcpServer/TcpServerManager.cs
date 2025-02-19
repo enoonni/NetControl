@@ -1,23 +1,56 @@
-using System.Text;
+using System.Diagnostics;
 
 namespace NetControlApi.Services.TcpServer;
 
-public class TcpServerManager
+public class TcpServerManager : IDisposable
 {
-    private StringBuilder _path;
+    private readonly string _path;
+    private Process? _dataServerProcess;
+    public bool IsServerRunning() => _dataServerProcess is {HasExited: false};
 
     public TcpServerManager(string path)
     {
-        _path = new StringBuilder(path);
+        _path = new string(path);
     }
 
     public bool Start()
     {
-        return false;
+        if(IsServerRunning())
+        {
+            return false;
+        }
+
+        _dataServerProcess = new Process
+        {
+            StartInfo = new ProcessStartInfo
+            {
+                FileName = _path.ToString(),
+                UseShellExecute = false
+            }
+        };
+        _dataServerProcess.Start();
+        return true;       
     }
 
     public bool Stop()
     {
-        return false;
+        if(!IsServerRunning())
+        {
+            return false;
+        }
+
+        _dataServerProcess!.Kill();
+        _dataServerProcess.WaitForExit();
+        _dataServerProcess.Dispose();
+        _dataServerProcess = null;
+        return true;
+    }
+
+    public void Dispose()
+    {
+        if (_dataServerProcess != null)
+        {
+            Stop();
+        }
     }
 }
