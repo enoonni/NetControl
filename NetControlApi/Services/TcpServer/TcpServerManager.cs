@@ -2,20 +2,20 @@ using System.Diagnostics;
 
 namespace NetControlApi.Services.TcpServer;
 
-public class TcpServerManager : IDisposable
+public class TcpServerManager : IDisposable, ITcpServerManager
 {
     private readonly string _path;
     private Process? _dataServerProcess;
-    public bool IsServerRunning() => _dataServerProcess is {HasExited: false};
+    public bool IsServerRunning => _dataServerProcess is {HasExited: false};
 
     public TcpServerManager(string path)
     {
-        _path = new string(path);
+        _path = path;
     }
 
     public bool Start()
     {
-        if(IsServerRunning())
+        if(IsServerRunning)
         {
             return false;
         }
@@ -34,7 +34,7 @@ public class TcpServerManager : IDisposable
 
     public bool Stop()
     {
-        if(!IsServerRunning())
+        if(!IsServerRunning)
         {
             return false;
         }

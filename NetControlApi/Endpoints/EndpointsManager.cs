@@ -1,20 +1,14 @@
-using System.Diagnostics;
+using NetControlApi.Services.TcpServer;
 
 namespace NetControlApi.Endpoints;
 
 public static class EndpointsManager
 {
-    public static void RoutingEndpoints(this WebApplication app)
+    public static void RoutingEndpoints(this WebApplication app, ITcpServerManager tcpServer)
     {
-        var path = @"C:\Users\Enoonni\AspLess\NetControl\DataServer\bin\Debug\net8.0\DataServer.exe";
-
-        Process? dataServerProcess = null;
-
-        bool IsServerRunning() => dataServerProcess != null && !dataServerProcess.HasExited;
-
         app.MapGet("/", () => 
         {
-            bool isRunning = IsServerRunning();
+            bool isRunning = tcpServer.IsServerRunning;
             
             return Results.Content($@"
                 <!DOCTYPE html>
@@ -41,19 +35,11 @@ public static class EndpointsManager
 
         app.MapPost("/start", () =>
         {
-            if(dataServerProcess == null || dataServerProcess.HasExited)
+            if(!tcpServer.IsServerRunning)
             {
                 try
                 {
-                    dataServerProcess = new Process
-                    {
-                        StartInfo = new ProcessStartInfo
-                        {
-                            FileName = path,
-                            UseShellExecute = false
-                        }
-                    };
-                    dataServerProcess.Start();
+                    tcpServer.Start();
                 }
 
                 catch (Exception ex)
@@ -73,14 +59,11 @@ public static class EndpointsManager
 
         app.MapPost("/stop", () =>
         {
-            if(dataServerProcess != null && !dataServerProcess.HasExited)
+            if(tcpServer.IsServerRunning)
             {
                 try
                 {
-                    dataServerProcess.Kill();
-                    dataServerProcess.WaitForExit();
-                    dataServerProcess.Dispose();
-                    dataServerProcess = null;
+                    tcpServer.Stop();
                 }
                 catch (Exception ex)
                 {
